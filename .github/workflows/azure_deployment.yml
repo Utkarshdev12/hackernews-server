@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_REGION: centralindia
-  RESOURCE_GROUP: HackerNews
+  RESOURCE_GROUP: hackernews
   CONTAINER_APPS_ENVIRONMENT: HackerNewsContainerAppsEnvironment
   LOG_ANALYTICS_WORKSPACE: HackerNewsLogAnalyticsWorkspace
   ACR_REGISTRY: hackernews1si21cs114.azurecr.io
