@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_REGION: centralindia
-  RESOURCE_GROUP: hackernews
+  RESOURCE_GROUP: HackerNews
   CONTAINER_APPS_ENVIRONMENT: HackerNewsContainerAppsEnvironment
   LOG_ANALYTICS_WORKSPACE: HackerNewsLogAnalyticsWorkspace
   ACR_REGISTRY: utkarsh1si21cs114.azurecr.io
@@ -29,18 +29,8 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_GITHUB_ACTIONS }}
 
-      - name: Set Azure Subscription
-        run: |
-          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-          az account set --subscription "b0b9e2e6-e21c-41f4-a24c-dbc6d79313e1"  # Use correct subscription ID
-
-      # List Resource Groups for debugging
-      - name: List Resource Groups
-        run: |
-          az group list --query "[].name" -o table
-
-      # Check Resource Group exists or create it
-      - name: Check Resource Group exists or create it
+      # INFRA ENSURE BLOCKS
+      - name: Check Resource Group exists
         run: |
           RG_EXISTS=$(az group show \
             --name "${{ env.RESOURCE_GROUP }}" \
@@ -49,11 +39,10 @@ jobs:
 
           if [ -z "$RG_EXISTS" ]; then
             echo "❌ Resource group '${{ env.RESOURCE_GROUP }}' not found."
-            echo "👉 Creating resource group '${{ env.RESOURCE_GROUP }}'."
-            az group create --name "${{ env.RESOURCE_GROUP }}" --location "${{ env.AZURE_REGION }}"
+            echo "👉 Please create it manually first."
+            exit 1
           fi
 
-      # Ensure Log Analytics Workspace
       - name: Ensure Log Analytics Workspace
         run: |
           WORKSPACE_EXISTS=$(az monitor log-analytics workspace show \
@@ -84,7 +73,6 @@ jobs:
           echo "WORKSPACE_ID=$WORKSPACE_ID" >> $GITHUB_ENV
           echo "WORKSPACE_KEY=$WORKSPACE_KEY" >> $GITHUB_ENV
 
-      # Ensure Azure Container Registry (ACR)
       - name: Ensure Azure Container Registry (ACR)
         run: |
           REGISTRY_NAME=$(echo "${{ env.ACR_REGISTRY }}" | cut -d'.' -f1)
@@ -111,7 +99,6 @@ jobs:
           echo "ACR_USERNAME=$ACR_USERNAME" >> $GITHUB_ENV
           echo "ACR_PASSWORD=$ACR_PASSWORD" >> $GITHUB_ENV
 
-      # Ensure Container Apps Environment
       - name: Ensure Container Apps Environment
         run: |
           ENV_EXISTS=$(az containerapp env show \
@@ -167,4 +154,4 @@ jobs:
                 DIRECT_URL=${{ secrets.DIRECT_URL }} \
                 SERVER_URL=${{ secrets.SERVER_URL }} \
                 WEB_CLIENT_URL=${{ secrets.WEB_CLIENT_URL }} \
-                BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+                BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }} 
